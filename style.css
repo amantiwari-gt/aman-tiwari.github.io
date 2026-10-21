@@ -97,6 +97,51 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 .stats strong { display: block; font-family: var(--serif); font-size: 1.9rem; font-weight: 600; }
 .stats span { color: var(--muted); font-size: .9rem; }
 
+/* ---------- Highlights carousel ---------- */
+.showcase { padding: 40px 0 0; }
+.carousel {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 40px 44px 24px;
+}
+.slides { display: grid; }
+.slide {
+  grid-area: 1 / 1;                      /* stack slides; height follows the tallest */
+  display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+  opacity: 0; visibility: hidden; transform: translateX(24px);
+  transition: opacity .6s ease, transform .6s ease, visibility .6s;
+}
+.slide.is-active { opacity: 1; visibility: visible; transform: none; }
+.slide-title {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.2; max-width: 26ch;
+}
+.slide-title em { color: var(--accent); font-style: italic; }
+.slide-link { color: var(--accent); font-weight: 500; font-size: .94rem; }
+.slide-link:hover { text-decoration: underline; }
+
+.carousel-controls {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line);
+}
+.dots { display: flex; gap: 8px; }
+.dot {
+  width: 8px; height: 8px; padding: 0; border: none; border-radius: 999px;
+  background: var(--line); cursor: pointer; transition: width .3s, background .3s;
+}
+.dot:hover { background: var(--muted); }
+.dot[aria-current="true"] { width: 26px; background: var(--accent); }
+.arrows { display: flex; gap: 8px; }
+
+/* Progress bar: when its animation ends, script.js shows the next slide */
+.progress { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.progress span {
+  display: block; height: 100%; width: 0; background: var(--accent);
+  animation: carousel-fill 6s linear forwards;
+}
+.carousel.is-paused .progress span { animation-play-state: paused; }
+@keyframes carousel-fill { to { width: 100%; } }
+
 /* ---------- About ---------- */
 .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; color: var(--muted); }
 
@@ -118,12 +163,18 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 /* ---------- Cards ---------- */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 .card {
+  position: relative;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 26px; display: flex; flex-direction: column; gap: 10px;
   transition: transform .2s, border-color .2s, box-shadow .2s;
 }
 .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 30px -18px rgba(0,0,0,.35); }
 .card h3 { font-family: var(--serif); font-size: 1.2rem; font-weight: 600; }
+/* Title link stretches over the whole card so the card itself is clickable */
+.card h3 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.card h3 a:focus-visible { outline: none; }
+.card:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 2px; }
+.card .arrow { color: var(--accent); font-family: var(--sans); font-size: .9rem; }
 .card p { color: var(--muted); font-size: .95rem; }
 .card .stack { margin-top: auto; padding-top: 6px; font-size: .82rem; color: var(--accent); }
 .tag {
@@ -162,6 +213,8 @@ footer a:hover { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
   html { scroll-behavior: auto; }
+  .slide { transition: none; transform: none; }
+  .progress { display: none; }          /* no auto-advance; arrows and dots still work */
 }
 
 /* ---------- Responsive ---------- */
@@ -177,4 +230,5 @@ footer a:hover { color: var(--accent); }
   .about-grid, .skills, .edu { grid-template-columns: 1fr; }
   .job { grid-template-columns: 1fr; gap: 4px; }
   .hero { padding-top: 70px; }
+  .carousel { padding: 32px 22px 20px; }
 }
