@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://amantiwari-gt.github.io/aman-tiwari.github.io/sitemap.xml

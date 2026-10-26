@@ -1,107 +1,53 @@
-// ---------- Theme (remembers choice, falls back to system setting) ----------
-const root = document.documentElement;
-const toggle = document.getElementById("theme-toggle");
-
-function applyTheme(theme) {
-  root.setAttribute("data-theme", theme);
-  try { localStorage.setItem("theme", theme); } catch (e) {}
-}
-
-let saved = null;
-try { saved = localStorage.getItem("theme"); } catch (e) {}
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-applyTheme(saved || (prefersDark ? "dark" : "light"));
-
-toggle.addEventListener("click", () => {
-  applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
-});
-
-// ---------- Mobile menu ----------
-const menu = document.getElementById("menu");
-const menuBtn = document.getElementById("menu-toggle");
-
-menuBtn.addEventListener("click", () => {
-  const open = menu.classList.toggle("open");
-  menuBtn.setAttribute("aria-expanded", open);
-});
-menu.querySelectorAll("a").forEach(a =>
-  a.addEventListener("click", () => {
-    menu.classList.remove("open");
-    menuBtn.setAttribute("aria-expanded", "false");
-  })
-);
-
-// ---------- Scroll reveal ----------
-const revealEls = document.querySelectorAll(".reveal");
-if ("IntersectionObserver" in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add("visible");
-        io.unobserve(e.target);
-      }
+/* Small, optional enhancements. No content depends on this file. */
+(() => {
+  'use strict';
+  const root = document.documentElement;
+  const theme = document.querySelector('.theme-toggle');
+  if (theme) {
+    const updateThemeLabel = () => {
+      const isDark = root.dataset.theme === 'dark';
+      theme.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} theme`);
+      theme.setAttribute('title', `Switch to ${isDark ? 'light' : 'dark'} theme`);
+    };
+    theme.hidden = false;
+    updateThemeLabel();
+    theme.addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try { localStorage.setItem('portfolio-theme', next); } catch (_) { /* Optional storage. */ }
+      updateThemeLabel();
     });
-  }, { threshold: 0.08 });
-  revealEls.forEach(el => io.observe(el));
-} else {
-  revealEls.forEach(el => el.classList.add("visible"));
-}
-
-// ---------- Highlight active nav link ----------
-const links = [...menu.querySelectorAll("a")];
-const sections = links.map(l => document.querySelector(l.getAttribute("href"))).filter(Boolean);
-const spy = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      links.forEach(l => l.classList.toggle("active", l.getAttribute("href") === "#" + e.target.id));
-    }
-  });
-}, { rootMargin: "-45% 0px -50% 0px" });
-sections.forEach(s => spy.observe(s));
-
-// ---------- Highlights carousel (auto-advances, pauses on hover/focus) ----------
-const carousel = document.querySelector(".carousel");
-if (carousel) {
-  const slides = [...carousel.querySelectorAll(".slide")];
-  const bar = carousel.querySelector(".progress span");
-  let current = 0;
-
-  const dots = slides.map((_, i) => {
-    const dot = document.createElement("button");
-    dot.type = "button";
-    dot.className = "dot";
-    dot.setAttribute("aria-label", `Show highlight ${i + 1} of ${slides.length}`);
-    dot.addEventListener("click", () => show(i));
-    carousel.querySelector(".dots").appendChild(dot);
-    return dot;
-  });
-
-  function show(i) {
-    current = (i + slides.length) % slides.length;
-    slides.forEach((s, n) => {
-      s.classList.toggle("is-active", n === current);
-      s.setAttribute("aria-hidden", n !== current);
-    });
-    dots.forEach((d, n) => d.setAttribute("aria-current", n === current));
-    // Restart the progress bar animation for the new slide
-    bar.style.animation = "none";
-    void bar.offsetWidth;
-    bar.style.animation = "";
   }
 
-  bar.addEventListener("animationend", () => show(current + 1));
-  carousel.querySelector(".prev").addEventListener("click", () => show(current - 1));
-  carousel.querySelector(".next").addEventListener("click", () => show(current + 1));
-
-  const pause = () => carousel.classList.add("is-paused");
-  const resume = () => carousel.classList.remove("is-paused");
-  carousel.addEventListener("mouseenter", pause);
-  carousel.addEventListener("mouseleave", resume);
-  carousel.addEventListener("focusin", pause);
-  carousel.addEventListener("focusout", resume);
-
-  show(0);
-}
-
-// ---------- Footer year ----------
-document.getElementById("year").textContent = new Date().getFullYear();
+  const menu = document.getElementById('main-menu');
+  const button = document.querySelector('.menu-toggle');
+  if (menu && button) {
+    root.classList.add('js');
+    button.hidden = false;
+    const close = () => {
+      menu.classList.remove('open');
+      button.setAttribute('aria-expanded', 'false');
+      button.innerHTML = 'Menu <span aria-hidden="true">+</span>';
+    };
+    button.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      button.setAttribute('aria-expanded', String(open));
+      button.innerHTML = `${open ? 'Close' : 'Menu'} <span aria-hidden="true">${open ? '−' : '+'}</span>`;
+    });
+    menu.addEventListener('click', event => {
+      if (event.target.closest('a')) close();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menu.classList.contains('open')) {
+        close();
+        button.focus();
+      }
+    });
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.site-header') && menu.classList.contains('open')) close();
+    });
+    const mobile = window.matchMedia('(max-width: 760px)');
+    mobile.addEventListener('change', close);
+  }
+  document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
+})();
