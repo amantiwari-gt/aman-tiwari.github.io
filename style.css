@@ -314,7 +314,7 @@ button[hidden] {
   background:var(--soft);
   padding:12px;
   border-radius:5px;
-  transform:rotate(1deg)
+  transform:none
 }
 .figure-top {
   display:flex;
